@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { Product, ProductVariant, Brand, Review } from '@/lib/types';
 import { productsApi, brandsApi, reviewsApi } from '@/lib/api';
@@ -13,6 +13,7 @@ export default function ProductDetailPage() {
   const params = useParams();
   const router = useRouter();
   const productId = params?.id as string;
+  const relatedProductsRef = useRef<HTMLDivElement>(null);
 
   const [product, setProduct] = useState<Product | null>(null);
   const [brand, setBrand] = useState<Brand | null>(null);
@@ -23,7 +24,10 @@ export default function ProductDetailPage() {
   const [selectedVariant, setSelectedVariant] = useState<ProductVariant | null>(null);
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const [isInWishlist, setIsInWishlist] = useState(false);
+  const [relatedScrollPosition, setRelatedScrollPosition] = useState(0);
   const [variantViewMode, setVariantViewMode] = useState<'grid' | 'list'>('grid');
+  const [canScrollLeft, setCanScrollLeft] = useState(false);
+  const [canScrollRight, setCanScrollRight] = useState(true);
 
   useEffect(() => {
     if (productId) {
@@ -159,6 +163,62 @@ export default function ProductDetailPage() {
     'purple': '#A855F7',
   };
 
+  const updateScrollButtons = () => {
+    if (!relatedProductsRef.current) return;
+    
+    const currentScroll = relatedProductsRef.current.scrollLeft;
+    const containerWidth = relatedProductsRef.current.offsetWidth;
+    const scrollWidth = relatedProductsRef.current.scrollWidth;
+    
+    setCanScrollLeft(currentScroll > 0);
+    setCanScrollRight(currentScroll < scrollWidth - containerWidth - 1); // -1 for rounding errors
+  };
+
+  const scrollRelatedProducts = (direction: 'left' | 'right') => {
+    if (!relatedProductsRef.current) return;
+    
+    // Get the first product card to calculate width
+    const firstCard = relatedProductsRef.current.querySelector('[data-product-card]') as HTMLElement;
+    if (!firstCard) return;
+    
+    // Calculate scroll amount: card width + gap (24px = gap-6)
+    const cardWidth = firstCard.offsetWidth;
+    const gap = 24; // gap-6 = 1.5rem = 24px
+    const scrollAmount = cardWidth + gap;
+    
+    const currentScroll = relatedProductsRef.current.scrollLeft;
+    const containerWidth = relatedProductsRef.current.offsetWidth;
+    const scrollWidth = relatedProductsRef.current.scrollWidth;
+    
+    let newPosition: number;
+    
+    if (direction === 'left') {
+      // Scroll left by one card
+      newPosition = Math.max(0, currentScroll - scrollAmount);
+    } else {
+      // Scroll right by one card
+      const maxScroll = scrollWidth - containerWidth;
+      newPosition = Math.min(maxScroll, currentScroll + scrollAmount);
+    }
+    
+    setRelatedScrollPosition(newPosition);
+    relatedProductsRef.current.scrollTo({ left: newPosition, behavior: 'smooth' });
+    
+    // Update button states after scroll animation
+    setTimeout(() => {
+      updateScrollButtons();
+    }, 300);
+  };
+
+  // Update scroll button states on mount and when products change
+  useEffect(() => {
+    if (relatedProducts.length > 0) {
+      setTimeout(() => {
+        updateScrollButtons();
+      }, 100);
+    }
+  }, [relatedProducts]);
+
   const getProductPrice = (product: Product): string => {
     if (product.variants && product.variants.length > 0) {
       return product.variants[0].price_out_usd || product.variants[0].price_in_usd || '0';
@@ -180,7 +240,7 @@ export default function ProductDetailPage() {
     <div className="min-h-screen bg-white">
       <Header />
 
-      <main className="container mx-auto px-4 sm:px-6 lg:px-8 py-4 sm:py-8">
+      <main className="container mx-auto px-4 py-8">
         {/* Back Button */}
         <button
           onClick={() => router.push('/')}
@@ -294,7 +354,7 @@ export default function ProductDetailPage() {
                 {/* Price and Rating */}
                 <div className="space-y-2">
                   <div className="flex items-baseline gap-2">
-                    <span className="text-2xl sm:text-3xl font-bold text-gray-900">
+                    <span className="text-3xl font-bold text-gray-900">
                       ${parseFloat(selectedVariant?.price_out_usd || selectedVariant?.price_in_usd || product.price || '0').toLocaleString()}
                     </span>
                   </div>
@@ -462,8 +522,8 @@ export default function ProductDetailPage() {
                 )}
 
                 {/* Action Buttons */}
-                <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 pt-4">
-                  <button className="w-full sm:flex-1 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-semibold">
+                <div className="flex gap-4 pt-4">
+                  <button className="flex-1 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-semibold">
                     View In Cart
                   </button>
                   <button
@@ -471,7 +531,7 @@ export default function ProductDetailPage() {
                       wishlistUtils.toggleWishlist(product.id);
                       setIsInWishlist(wishlistUtils.isInWishlist(product.id));
                     }}
-                    className={`w-full sm:w-auto px-6 py-3 rounded-lg transition-colors flex items-center justify-center gap-2 ${
+                    className={`px-6 py-3 rounded-lg transition-colors flex items-center gap-2 ${
                       isInWishlist
                         ? 'bg-red-50 text-red-600 border-2 border-red-200 hover:bg-red-100'
                         : 'bg-blue-50 text-blue-600 border-2 border-blue-200 hover:bg-blue-100'
@@ -556,19 +616,62 @@ export default function ProductDetailPage() {
             {/* Related Products Section */}
             {relatedProducts.length > 0 && (
               <div className="mb-12">
-                <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
+                <div className="flex items-center justify-between mb-6">
                   <div>
-                    <h2 className="text-xl sm:text-2xl font-bold text-gray-900">Related Products</h2>
-                    <p className="text-sm sm:text-base text-gray-600 mt-1">People Also Search For This Items</p>
+                    <h2 className="text-2xl font-bold text-gray-900">Related Products</h2>
+                    <p className="text-gray-600 mt-1">People Also Search For This Items</p>
                   </div>
-                  <button
-                    onClick={() => router.push('/shop')}
-                    className="text-blue-600 hover:text-blue-700 font-semibold text-sm transition-colors self-start sm:self-auto"
-                  >
-                    View All
-                  </button>
+                  <div className="flex items-center gap-4">
+                    <button
+                      onClick={() => router.push('/shop')}
+                      className="text-blue-600 hover:text-blue-700 font-semibold text-sm transition-colors"
+                    >
+                      View All
+                    </button>
+                    <div className="flex gap-2">
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          scrollRelatedProducts('left');
+                        }}
+                        disabled={!canScrollLeft}
+                        className={`w-10 h-10 rounded-full flex items-center justify-center transition-colors ${
+                          canScrollLeft
+                            ? 'bg-gray-100 hover:bg-gray-200 cursor-pointer'
+                            : 'bg-gray-50 cursor-not-allowed opacity-50'
+                        }`}
+                        aria-label="Scroll left"
+                      >
+                        <svg className={`w-5 h-5 ${canScrollLeft ? 'text-gray-600' : 'text-gray-400'}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+                        </svg>
+                      </button>
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          scrollRelatedProducts('right');
+                        }}
+                        disabled={!canScrollRight}
+                        className={`w-10 h-10 rounded-full flex items-center justify-center transition-colors ${
+                          canScrollRight
+                            ? 'bg-gray-100 hover:bg-gray-200 cursor-pointer'
+                            : 'bg-gray-50 cursor-not-allowed opacity-50'
+                        }`}
+                        aria-label="Scroll right"
+                      >
+                        <svg className={`w-5 h-5 ${canScrollRight ? 'text-gray-600' : 'text-gray-400'}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                        </svg>
+                      </button>
+                    </div>
+                  </div>
                 </div>
-                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4 sm:gap-6">
+                <div
+                  ref={relatedProductsRef}
+                  onScroll={updateScrollButtons}
+                  className="flex gap-6 overflow-x-auto scrollbar-hide pb-4"
+                  style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
+                >
                   {relatedProducts.map((relatedProduct) => {
                     const image = getProductImage(relatedProduct);
                     const price = getProductPrice(relatedProduct);
@@ -580,7 +683,8 @@ export default function ProductDetailPage() {
                     return (
                       <div
                         key={relatedProduct.id}
-                        className="bg-white border border-gray-200 rounded-lg overflow-hidden hover:shadow-lg transition-shadow cursor-pointer"
+                        data-product-card
+                        className="shrink-0 w-64 bg-white border border-gray-200 rounded-lg overflow-hidden hover:shadow-lg transition-shadow cursor-pointer"
                         onClick={() => router.push(`/products/${relatedProduct.id}`)}
                       >
                         <div className="relative w-full aspect-square bg-gray-100">
@@ -600,8 +704,8 @@ export default function ProductDetailPage() {
                             </div>
                           )}
                         </div>
-                        <div className="p-3 sm:p-4">
-                          <p className="text-base sm:text-lg font-bold text-gray-900 mb-1">${parseFloat(price).toLocaleString()}</p>
+                        <div className="p-4">
+                          <p className="text-lg font-bold text-gray-900 mb-1">${parseFloat(price).toLocaleString()}</p>
                           <h3 className="text-sm font-semibold text-gray-900 mb-1 line-clamp-1">{relatedProduct.name}</h3>
                           {brand && (
                             <p className="text-xs text-gray-600 mb-2">By {brand.name}</p>

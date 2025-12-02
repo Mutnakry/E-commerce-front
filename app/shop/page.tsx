@@ -26,6 +26,7 @@ export default function ShopPage() {
   const [allRatings, setAllRatings] = useState<number[]>([]);
   const [wishlist, setWishlist] = useState<string[]>([]);
   const [loading, setLoading] = useState(true);
+  const [isSearching, setIsSearching] = useState(false);
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
   const [isFilterOpen, setIsFilterOpen] = useState(false);
   
@@ -276,6 +277,24 @@ export default function ShopPage() {
     setCurrentPage(1);
   }, [searchQuery, selectedCategory, selectedBrands, priceRange, selectedPriceRange, minRating]);
 
+  // Handle search with loading state and debouncing
+  useEffect(() => {
+    if (searchQuery.trim()) {
+      setIsSearching(true);
+      const timeoutId = setTimeout(() => {
+        setIsSearching(false);
+      }, 500);
+      
+      return () => clearTimeout(timeoutId);
+    } else {
+      setIsSearching(false);
+    }
+  }, [searchQuery]);
+
+  const handleSearchChange = (value: string) => {
+    setSearchQuery(value);
+  };
+
   const getProductImage = (product: Product): string | null => {
     if (product.images && product.images.length > 0) {
       return product.images[0];
@@ -331,7 +350,6 @@ export default function ShopPage() {
             </button>
           </div>
           <h2 className="text-xl font-bold mb-4 hidden lg:block">Filters</h2>
-          <h2 className="text-xl font-bold mb-4">Filters</h2>
 
           {/* Price Range - Multi Range */}
           <div className="mb-6">
@@ -481,14 +499,19 @@ export default function ShopPage() {
               </div>
               
               <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 sm:gap-4">
-                <div className="flex-1">
+                <div className="flex-1 relative">
                   <input
                     type="text"
                     placeholder="Search Task"
                     value={searchQuery}
-                    onChange={(e) => setSearchQuery(e.target.value)}
-                    className="w-full px-3 sm:px-4 py-2 border rounded text-gray-900 text-sm sm:text-base"
+                    onChange={(e) => handleSearchChange(e.target.value)}
+                    className="w-full px-3 sm:px-4 py-2 pr-10 sm:pr-10 border rounded text-gray-900 text-sm sm:text-base"
                   />
+                  {isSearching && (
+                    <div className="absolute right-3 top-1/2 -translate-y-1/2">
+                      <div className="animate-spin rounded-full h-5 w-5 border-2 border-green-500 border-t-transparent"></div>
+                    </div>
+                  )}
                 </div>
                 
                 <div className="flex items-center gap-2 sm:gap-4 flex-wrap">
@@ -535,7 +558,7 @@ export default function ShopPage() {
           </div>
 
           {/* Products Grid/List */}
-          {loading ? (
+          {loading || isSearching ? (
             <div className="flex items-center justify-center py-12">
               <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-green-500"></div>
             </div>
