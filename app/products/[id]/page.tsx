@@ -8,6 +8,7 @@ import Image from 'next/image';
 import Header from '@/components/Header';
 import Footer from '@/components/Footer';
 import { wishlistUtils } from '@/lib/wishlist';
+import { cartUtils } from '@/lib/cart';
 
 export default function ProductDetailPage() {
   const params = useParams();
@@ -237,14 +238,14 @@ export default function ProductDetailPage() {
   };
 
   return (
-    <div className="min-h-screen bg-white">
+    <div className="min-h-screen bg-black">
       <Header />
 
       <main className="container mx-auto px-4 py-8">
         {/* Back Button */}
         <button
           onClick={() => router.push('/')}
-          className="flex items-center gap-2 mb-6 text-gray-600 hover:text-gray-900 transition-colors"
+          className="flex items-center gap-2 mb-6 text-gray-400 hover:text-white transition-colors"
         >
           <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" />
@@ -273,7 +274,7 @@ export default function ProductDetailPage() {
               {/* Left: Images */}
               <div className="space-y-4">
                 {/* Main Image */}
-                <div className="relative w-full aspect-square bg-gray-100 rounded-lg overflow-hidden">
+                <div className="relative w-full aspect-square bg-gray-900 rounded-lg overflow-hidden border border-gray-800">
                   {currentImage ? (
                     <>
                       <Image
@@ -289,7 +290,7 @@ export default function ProductDetailPage() {
                           <button
                             onClick={prevImage}
                             type="button"
-                            className="absolute left-2 top-1/2 -translate-y-1/2 w-10 h-10 rounded-full bg-white/80 backdrop-blur-sm border border-gray-300 flex items-center justify-center text-gray-700 hover:bg-white transition-colors z-10"
+                            className="absolute left-2 top-1/2 -translate-y-1/2 w-10 h-10 rounded-full bg-gray-800/90 backdrop-blur-sm border border-gray-700 flex items-center justify-center text-white hover:bg-gray-700 transition-colors z-10"
                             aria-label="Previous image"
                           >
                             <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -299,7 +300,7 @@ export default function ProductDetailPage() {
                           <button
                             onClick={nextImage}
                             type="button"
-                            className="absolute right-2 top-1/2 -translate-y-1/2 w-10 h-10 rounded-full bg-white/80 backdrop-blur-sm border border-gray-300 flex items-center justify-center text-gray-700 hover:bg-white transition-colors z-10"
+                            className="absolute right-2 top-1/2 -translate-y-1/2 w-10 h-10 rounded-full bg-gray-800/90 backdrop-blur-sm border border-gray-700 flex items-center justify-center text-white hover:bg-gray-700 transition-colors z-10"
                             aria-label="Next image"
                           >
                             <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -326,7 +327,7 @@ export default function ProductDetailPage() {
                         key={index}
                         onClick={() => setCurrentImageIndex(index)}
                         className={`relative aspect-square rounded-lg overflow-hidden border-2 transition-colors ${
-                          index === currentImageIndex ? 'border-green-500' : 'border-gray-300'
+                          index === currentImageIndex ? 'border-green-500' : 'border-gray-700'
                         }`}
                       >
                         <Image
@@ -345,17 +346,21 @@ export default function ProductDetailPage() {
               {/* Right: Product Details */}
               <div className="space-y-4 sm:space-y-6">
                 <div>
-                  <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 mb-2">{product.name}</h1>
+                  <h1 className="text-2xl sm:text-3xl font-bold text-white mb-2">{product.name}</h1>
                   {brand && (
-                    <p className="text-sm sm:text-base text-gray-600 mb-4">By {brand.name}</p>
+                    <p className="text-sm sm:text-base text-gray-400 mb-4">By {brand.name}</p>
                   )}
                 </div>
 
                 {/* Price and Rating */}
                 <div className="space-y-2">
                   <div className="flex items-baseline gap-2">
-                    <span className="text-3xl font-bold text-gray-900">
-                      ${parseFloat(selectedVariant?.price_out_usd || selectedVariant?.price_in_usd || product.price || '0').toLocaleString()}
+                    <svg className="w-6 h-6 text-green-500" fill="currentColor" viewBox="0 0 20 20">
+                      <path d="M8.433 7.418c.155-.103.346-.196.567-.267v1.698a2.305 2.305 0 01-.567-.267C8.07 8.34 8 8.114 8 8c0-.114.07-.34.433-.582zM11 12.849v-1.698c.22.071.412.164.567.267.364.243.433.468.433.582 0 .114-.07.34-.433.582a2.305 2.305 0 01-.567.267z" />
+                      <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-13a1 1 0 10-2 0v.092a4.535 4.535 0 00-1.676.662C6.602 6.234 6 7.009 6 8c0 .99.602 1.765 1.324 2.246.48.32 1.054.545 1.676.662v1.941c-.391-.127-.68-.317-.843-.504a1 1 0 10-1.51 1.31c.562.649 1.413 1.076 2.353 1.253V15a1 1 0 102 0v-.092a4.535 4.535 0 001.676-.662C13.398 13.766 14 12.991 14 12c0-.99-.602-1.765-1.324-2.246A4.535 4.535 0 0011 9.092V7.151c.391.127.68.317.843.504a1 1 0 101.511-1.31c-.563-.649-1.413-1.076-2.354-1.253V5z" clipRule="evenodd" />
+                    </svg>
+                    <span className="text-3xl font-bold text-green-500">
+                      {parseFloat(selectedVariant?.price_out_usd || selectedVariant?.price_in_usd || product.price || '0').toLocaleString()}
                     </span>
                   </div>
                   {productReviews.length > 0 && (
@@ -364,7 +369,7 @@ export default function ProductDetailPage() {
                         {[...Array(5)].map((_, i) => (
                           <svg
                             key={i}
-                            className={`w-5 h-5 ${i < Math.round(averageRating) ? 'text-yellow-400' : 'text-gray-300'}`}
+                            className={`w-5 h-5 ${i < Math.round(averageRating) ? 'text-yellow-400' : 'text-gray-600'}`}
                             fill="currentColor"
                             viewBox="0 0 20 20"
                           >
@@ -372,7 +377,7 @@ export default function ProductDetailPage() {
                           </svg>
                         ))}
                       </div>
-                      <span className="text-gray-600">
+                      <span className="text-gray-400">
                         From {productReviews.length} {productReviews.length === 1 ? 'Review' : 'Reviews'}
                       </span>
                     </div>
@@ -382,12 +387,12 @@ export default function ProductDetailPage() {
                 {/* Description */}
                 {product.description && (
                   <div>
-                    <p className="text-gray-700 leading-relaxed">{product.description}</p>
+                    <p className="text-gray-300 leading-relaxed">{product.description}</p>
                   </div>
                 )}
 
                 {/* EMI Options */}
-                <div className="text-gray-600">
+                <div className="text-gray-400">
                   <span className="font-medium">5 EMI Options Available</span>
                 </div>
 
@@ -395,14 +400,14 @@ export default function ProductDetailPage() {
                 {product.variants && product.variants.length > 0 && (
                   <div>
                     <div className="flex items-center justify-between mb-4">
-                      <h3 className="text-lg font-semibold text-gray-900">Variants</h3>
+                      <h3 className="text-lg font-semibold text-white">Variants</h3>
                       <div className="flex gap-2">
                         <button
                           onClick={() => setVariantViewMode('grid')}
                           className={`p-2 rounded-lg transition-colors ${
                             variantViewMode === 'grid'
-                              ? 'bg-blue-600 text-white'
-                              : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                              ? 'bg-green-500 text-white'
+                              : 'bg-gray-800 text-gray-400 hover:bg-gray-700'
                           }`}
                           aria-label="Grid view"
                         >
@@ -414,8 +419,8 @@ export default function ProductDetailPage() {
                           onClick={() => setVariantViewMode('list')}
                           className={`p-2 rounded-lg transition-colors ${
                             variantViewMode === 'list'
-                              ? 'bg-blue-600 text-white'
-                              : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                              ? 'bg-green-500 text-white'
+                              : 'bg-gray-800 text-gray-400 hover:bg-gray-700'
                           }`}
                           aria-label="List view"
                         >
@@ -447,15 +452,15 @@ export default function ProductDetailPage() {
                             }}
                             className={`p-4 rounded-lg border-2 transition-colors ${
                               isSelected
-                                ? 'border-green-500 bg-green-50 cursor-pointer'
+                                ? 'border-green-500 bg-green-900/30 cursor-pointer'
                                 : isAvailable
-                                ? 'border-gray-300 hover:border-gray-400 cursor-pointer'
-                                : 'border-gray-200 bg-gray-100 opacity-50 cursor-not-allowed'
+                                ? 'border-gray-700 hover:border-gray-600 cursor-pointer bg-gray-900'
+                                : 'border-gray-800 bg-gray-900 opacity-50 cursor-not-allowed'
                             }`}
                           >
                             <div className={variantViewMode === 'grid' ? 'flex flex-col gap-3' : 'flex items-start justify-between gap-4'}>
                               {variant.images && variant.images.length > 0 && (
-                                <div className={`relative ${variantViewMode === 'grid' ? 'w-full aspect-square' : 'w-20 h-20'} rounded-lg overflow-hidden border border-gray-200 shrink-0`}>
+                                <div className={`relative ${variantViewMode === 'grid' ? 'w-full aspect-square' : 'w-20 h-20'} rounded-lg overflow-hidden border border-gray-700 shrink-0 bg-gray-800`}>
                                   <Image
                                     src={variant.images[0]}
                                     alt={variant.title}
@@ -466,7 +471,7 @@ export default function ProductDetailPage() {
                                 </div>
                               )}
                               <div className="flex-1">
-                                <h4 className="text-gray-900 font-medium mb-2">{variant.title}</h4>
+                                <h4 className="text-white font-medium mb-2">{variant.title}</h4>
                                 {variant.attributes && (
                                   <div className="flex flex-wrap gap-2 mb-2">
                                     {Object.entries(variant.attributes).map(([key, value]) => {
@@ -475,7 +480,7 @@ export default function ProductDetailPage() {
                                         const colorHex = colorToHex[value.toLowerCase()] || '#000000';
                                         return (
                                           <div key={key} className="flex items-center gap-2">
-                                            <span className="text-gray-600 text-xs">{key}:</span>
+                                            <span className="text-gray-400 text-xs">{key}:</span>
                                             <div
                                               className="w-5 h-5 rounded-full border border-gray-300"
                                               style={{ backgroundColor: colorHex }}
@@ -487,7 +492,7 @@ export default function ProductDetailPage() {
                                       return (
                                         <span
                                           key={key}
-                                          className="px-2 py-1 bg-gray-100 text-gray-700 text-xs rounded"
+                                          className="px-2 py-1 bg-gray-800 text-gray-300 text-xs rounded border border-gray-700"
                                         >
                                           {key}: {String(value)}
                                         </span>
@@ -497,7 +502,7 @@ export default function ProductDetailPage() {
                                 )}
                                 <div className="space-y-1">
                                   <div className="flex items-center gap-2">
-                                    <span className="text-gray-900 font-semibold">
+                                    <span className="text-green-500 font-semibold">
                                       ${parseFloat(variant.price_out_usd || variant.price_in_usd || '0').toLocaleString()}
                                     </span>
                                     {variant.compareAt_usd && (
@@ -523,7 +528,18 @@ export default function ProductDetailPage() {
 
                 {/* Action Buttons */}
                 <div className="flex gap-4 pt-4">
-                  <button className="flex-1 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-semibold">
+                  <button
+                    onClick={() => {
+                      if (product) {
+                        // Add product to cart with selected variant
+                        const variantId = selectedVariant?.id;
+                        cartUtils.addToCart(product.id, variantId, 1);
+                        // Navigate to cart page
+                        router.push('/cart');
+                      }
+                    }}
+                    className="flex-1 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-semibold"
+                  >
                     View In Cart
                   </button>
                   <button
@@ -533,8 +549,8 @@ export default function ProductDetailPage() {
                     }}
                     className={`px-6 py-3 rounded-lg transition-colors flex items-center gap-2 ${
                       isInWishlist
-                        ? 'bg-red-50 text-red-600 border-2 border-red-200 hover:bg-red-100'
-                        : 'bg-blue-50 text-blue-600 border-2 border-blue-200 hover:bg-blue-100'
+                        ? 'bg-purple-700 text-white border-2 border-purple-600 hover:bg-purple-600'
+                        : 'bg-purple-900 text-purple-300 border-2 border-purple-700 hover:bg-purple-800'
                     }`}
                     aria-label={isInWishlist ? 'Remove from wishlist' : 'Add to wishlist'}
                   >
@@ -547,7 +563,7 @@ export default function ProductDetailPage() {
 
                 {/* Share Options */}
                 <div className="pt-4">
-                  <p className="text-gray-600 mb-2">Share To</p>
+                  <p className="text-gray-400 mb-2">Share To</p>
                   <div className="flex gap-3">
                     <button className="w-10 h-10 rounded-full bg-blue-600 text-white flex items-center justify-center hover:bg-blue-700 transition-colors">
                       <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
@@ -575,39 +591,39 @@ export default function ProductDetailPage() {
             </div>
 
             {/* Guarantees and Services Section */}
-            <div className="bg-green-50 rounded-lg p-6 mb-12">
+            <div className="bg-gray-900 rounded-lg p-6 mb-12 border border-gray-800">
               <div className="grid md:grid-cols-3 gap-6">
                 <div className="flex items-start gap-4">
-                  <div className="w-12 h-12 rounded-full bg-green-100 flex items-center justify-center shrink-0">
-                    <svg className="w-6 h-6 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <div className="w-12 h-12 rounded-full bg-green-900/50 flex items-center justify-center shrink-0 border border-green-700">
+                    <svg className="w-6 h-6 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
                     </svg>
                   </div>
                   <div>
-                    <h3 className="font-semibold text-gray-900 mb-1">100% Original</h3>
-                    <p className="text-sm text-gray-600">Chocolate Bar Candy Canes Ice Cream Toffee Cookie Havah.</p>
+                    <h3 className="font-semibold text-white mb-1">100% Original</h3>
+                    <p className="text-sm text-gray-400">Chocolate Bar Candy Canes Ice Cream Toffee Cookie Havah.</p>
                   </div>
                 </div>
                 <div className="flex items-start gap-4">
-                  <div className="w-12 h-12 rounded-full bg-green-100 flex items-center justify-center shrink-0">
-                    <svg className="w-6 h-6 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <div className="w-12 h-12 rounded-full bg-green-900/50 flex items-center justify-center shrink-0 border border-green-700">
+                    <svg className="w-6 h-6 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
                     </svg>
                   </div>
                   <div>
-                    <h3 className="font-semibold text-gray-900 mb-1">10 Day Replacement</h3>
-                    <p className="text-sm text-gray-600">Marshmallow Biscuit Donut Dragée Fruitcake Wafer.</p>
+                    <h3 className="font-semibold text-white mb-1">10 Day Replacement</h3>
+                    <p className="text-sm text-gray-400">Marshmallow Biscuit Donut Dragée Fruitcake Wafer.</p>
                   </div>
                 </div>
                 <div className="flex items-start gap-4">
-                  <div className="w-12 h-12 rounded-full bg-green-100 flex items-center justify-center shrink-0">
-                    <svg className="w-6 h-6 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <div className="w-12 h-12 rounded-full bg-green-900/50 flex items-center justify-center shrink-0 border border-green-700">
+                    <svg className="w-6 h-6 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
                     </svg>
                   </div>
                   <div>
-                    <h3 className="font-semibold text-gray-900 mb-1">1 Year Warranty</h3>
-                    <p className="text-sm text-gray-600">Cotton Candy Gingerbread Cake I Love Sugar Sweet.</p>
+                    <h3 className="font-semibold text-white mb-1">1 Year Warranty</h3>
+                    <p className="text-sm text-gray-400">Cotton Candy Gingerbread Cake I Love Sugar Sweet.</p>
                   </div>
                 </div>
               </div>
@@ -618,13 +634,13 @@ export default function ProductDetailPage() {
               <div className="mb-12">
                 <div className="flex items-center justify-between mb-6">
                   <div>
-                    <h2 className="text-2xl font-bold text-gray-900">Related Products</h2>
-                    <p className="text-gray-600 mt-1">People Also Search For This Items</p>
+                    <h2 className="text-2xl font-bold text-white">Related Products</h2>
+                    <p className="text-gray-400 mt-1">People Also Search For This Items</p>
                   </div>
                   <div className="flex items-center gap-4">
                     <button
                       onClick={() => router.push('/shop')}
-                      className="text-blue-600 hover:text-blue-700 font-semibold text-sm transition-colors"
+                      className="text-green-500 hover:text-green-400 font-semibold text-sm transition-colors"
                     >
                       View All
                     </button>
@@ -637,12 +653,12 @@ export default function ProductDetailPage() {
                         disabled={!canScrollLeft}
                         className={`w-10 h-10 rounded-full flex items-center justify-center transition-colors ${
                           canScrollLeft
-                            ? 'bg-gray-100 hover:bg-gray-200 cursor-pointer'
-                            : 'bg-gray-50 cursor-not-allowed opacity-50'
+                            ? 'bg-gray-800 hover:bg-gray-700 cursor-pointer'
+                            : 'bg-gray-900 cursor-not-allowed opacity-50'
                         }`}
                         aria-label="Scroll left"
                       >
-                        <svg className={`w-5 h-5 ${canScrollLeft ? 'text-gray-600' : 'text-gray-400'}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <svg className={`w-5 h-5 ${canScrollLeft ? 'text-gray-300' : 'text-gray-600'}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
                         </svg>
                       </button>
@@ -654,12 +670,12 @@ export default function ProductDetailPage() {
                         disabled={!canScrollRight}
                         className={`w-10 h-10 rounded-full flex items-center justify-center transition-colors ${
                           canScrollRight
-                            ? 'bg-gray-100 hover:bg-gray-200 cursor-pointer'
-                            : 'bg-gray-50 cursor-not-allowed opacity-50'
+                            ? 'bg-gray-800 hover:bg-gray-700 cursor-pointer'
+                            : 'bg-gray-900 cursor-not-allowed opacity-50'
                         }`}
                         aria-label="Scroll right"
                       >
-                        <svg className={`w-5 h-5 ${canScrollRight ? 'text-gray-600' : 'text-gray-400'}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <svg className={`w-5 h-5 ${canScrollRight ? 'text-gray-300' : 'text-gray-600'}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
                         </svg>
                       </button>
@@ -684,10 +700,10 @@ export default function ProductDetailPage() {
                       <div
                         key={relatedProduct.id}
                         data-product-card
-                        className="shrink-0 w-64 bg-white border border-gray-200 rounded-lg overflow-hidden hover:shadow-lg transition-shadow cursor-pointer"
+                        className="shrink-0 w-64 bg-gray-900 border border-gray-800 rounded-lg overflow-hidden hover:border-gray-700 transition-all cursor-pointer"
                         onClick={() => router.push(`/products/${relatedProduct.id}`)}
                       >
-                        <div className="relative w-full aspect-square bg-gray-100">
+                        <div className="relative w-full aspect-square bg-gray-800">
                           {image ? (
                             <Image
                               src={image}
@@ -697,7 +713,7 @@ export default function ProductDetailPage() {
                               unoptimized
                             />
                           ) : (
-                            <div className="absolute inset-0 flex items-center justify-center text-gray-400">
+                            <div className="absolute inset-0 flex items-center justify-center text-gray-600">
                               <svg className="w-16 h-16" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
                               </svg>
@@ -705,13 +721,13 @@ export default function ProductDetailPage() {
                           )}
                         </div>
                         <div className="p-4">
-                          <p className="text-lg font-bold text-gray-900 mb-1">${parseFloat(price).toLocaleString()}</p>
-                          <h3 className="text-sm font-semibold text-gray-900 mb-1 line-clamp-1">{relatedProduct.name}</h3>
+                          <p className="text-lg font-bold text-green-500 mb-1">${parseFloat(price).toLocaleString()}</p>
+                          <h3 className="text-sm font-semibold text-white mb-1 line-clamp-1">{relatedProduct.name}</h3>
                           {brand && (
-                            <p className="text-xs text-gray-600 mb-2">By {brand.name}</p>
+                            <p className="text-xs text-gray-400 mb-2">By {brand.name}</p>
                           )}
                           {relatedProduct.shortDesc && (
-                            <p className="text-xs text-gray-600 mb-2 line-clamp-2">{relatedProduct.shortDesc}</p>
+                            <p className="text-xs text-gray-400 mb-2 line-clamp-2">{relatedProduct.shortDesc}</p>
                           )}
                           {productReviews.length > 0 && (
                             <div className="flex items-center gap-1">

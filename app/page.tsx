@@ -7,6 +7,7 @@ import { bannersApi, productsApi } from '@/lib/api';
 import { Banner, Product } from '@/lib/types';
 import BannerCarousel from '@/components/banner/banner';
 import HomeProduct from '@/components/product/home-product';
+import HowPromotion from '@/components/promotions/how-promotion';
 
 export default function Home() {
   const [banners, setBanners] = useState<Banner[]>([]);
@@ -67,6 +68,9 @@ export default function Home() {
               {error}
             </div>
           )}
+
+          {/* Promotions Section */}
+          <HowPromotion />
 
           {/* Products Section */}
           <HomeProduct products={products} loading={loading} />

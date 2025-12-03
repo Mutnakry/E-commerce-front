@@ -35,3 +35,48 @@ body {
   -ms-overflow-style: none;  /* IE and Edge */
   scrollbar-width: none;  /* Firefox */
 }
+
+/* Marquee animation for scrolling text right to left */
+@keyframes marquee {
+  0% {
+    transform: translateX(0);
+  }
+  100% {
+    transform: translateX(-50%);
+  }
+}
+
+.marquee-content {
+  display: inline-flex;
+  white-space: nowrap;
+  animation: marquee 20s linear infinite;
+}
+
+.marquee-container {
+  overflow: hidden;
+  position: relative;
+  width: 100%;
+}
+
+/* Custom green scrollbar for activity feed */
+.activity-feed-scrollbar::-webkit-scrollbar {
+  width: 6px;
+}
+
+.activity-feed-scrollbar::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.activity-feed-scrollbar::-webkit-scrollbar-thumb {
+  background: #22c55e; /* green-500 */
+  border-radius: 3px;
+}
+
+.activity-feed-scrollbar::-webkit-scrollbar-thumb:hover {
+  background: #16a34a; /* green-600 */
+}
+
+.activity-feed-scrollbar {
+  scrollbar-width: thin;
+  scrollbar-color: #22c55e transparent;
+}

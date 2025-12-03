@@ -109,3 +109,30 @@ export interface Review {
   updatedAt?: string;
 }
 
+export interface UserLog {
+  id?: string;
+  userId?: string;
+  user?: string;
+  phoneNumber?: string;
+  item?: string;
+  productName?: string;
+  badge?: string;
+  message?: string;
+  action?: string;
+  createdAt?: string;
+  updatedAt?: string;
+}
+
+export interface Promotion {
+  id: string;
+  title: string;
+  description: string;
+  discountType: 'PERCENTAGE' | 'FIXED_AMOUNT';
+  value: number;
+  startsAt: string;
+  endsAt: string;
+  active: boolean;
+  createdAt?: string;
+  updatedAt?: string;
+}
+

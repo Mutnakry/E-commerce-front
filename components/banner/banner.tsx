@@ -1,7 +1,8 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { Banner } from '@/lib/types';
+import { Banner, UserLog } from '@/lib/types';
+import { userLogsApi } from '@/lib/api';
 import Image from 'next/image';
 
 interface BannerCarouselProps {
@@ -11,6 +12,9 @@ interface BannerCarouselProps {
 
 export default function BannerCarousel({ banners, loading }: BannerCarouselProps) {
   const [currentBannerIndex, setCurrentBannerIndex] = useState(0);
+  const [userLogs, setUserLogs] = useState<UserLog[]>([]);
+  const [logsLoading, setLogsLoading] = useState(true);
+  const [scrollIndex, setScrollIndex] = useState(0);
 
   // Reset index when banners change
   useEffect(() => {
@@ -18,6 +22,48 @@ export default function BannerCarousel({ banners, loading }: BannerCarouselProps
       setCurrentBannerIndex(0);
     }
   }, [banners.length, currentBannerIndex]);
+
+  // Fetch user logs
+  useEffect(() => {
+    const fetchUserLogs = async () => {
+      try {
+        setLogsLoading(true);
+        const token = localStorage.getItem('token');
+        const logs = await userLogsApi.getUserLogs(token || undefined);
+        console.log('Fetched user logs:', logs);
+        setUserLogs(logs || []);
+      } catch (error) {
+        console.error('Error fetching user logs:', error);
+        setUserLogs([]);
+      } finally {
+        setLogsLoading(false);
+      }
+    };
+
+    fetchUserLogs();
+  }, []);
+
+  // Auto-scroll user logs (show 3 items, scroll bottom to top)
+  useEffect(() => {
+    if (userLogs.length <= 3) {
+      setScrollIndex(0);
+      return; // Don't scroll if we have 3 or fewer items
+    }
+
+    const interval = setInterval(() => {
+      setScrollIndex((prev) => {
+        // Calculate max index to ensure we always show 3 items
+        const maxIndex = userLogs.length;
+        const nextIndex = prev + 1;
+        // Reset to 0 when we reach the end for seamless loop (since we duplicate the array)
+        return nextIndex >= maxIndex ? 0 : nextIndex;
+      });
+    }, 3000); // Change every 3 seconds
+
+    return () => {
+      clearInterval(interval);
+    };
+  }, [userLogs.length]);
 
   const currentBanner = banners[currentBannerIndex] || null;
 
@@ -130,30 +176,70 @@ export default function BannerCarousel({ banners, loading }: BannerCarouselProps
 
           {/* Right: Activity Feed */}
           <div className="md:col-span-1">
-            <div className="bg-gray-900/80 backdrop-blur-sm rounded-lg p-4 border border-gray-700 max-h-[500px] overflow-y-auto">
-              <div className="space-y-4">
-                {[
-                  { user: '187****6387', item: 'Cute Cross-Border Yellow Duck Thermos Cup', badge: '18' },
-                  { user: '187****6367', item: 'Cute Cross-Border Yellow Duck Thermos Cap', badge: '18' },
-                  { user: '187****6399', item: 'Gold Treasure Box', badge: '18' },
-                ].map((activity, index) => (
-                  <div key={index} className="flex items-start gap-3">
-                    <div className="relative shrink-0">
-                      <div className="w-12 h-12 bg-green-500 rounded-full flex items-center justify-center text-white font-bold text-sm">
-                        {activity.user.charAt(0)}
-                      </div>
-                      <div className="absolute -bottom-1 -right-1 w-5 h-5 bg-red-500 rounded-full flex items-center justify-center text-white text-xs font-bold border-2 border-gray-900">
-                        {activity.badge}
-                      </div>
+            <div className=" h-[300px] overflow-hidden relative">
+              {logsLoading ? (
+                <div className="flex items-center justify-center py-8">
+                  <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-green-500"></div>
+                </div>
+              ) : userLogs.length === 0 ? (
+                <div className="text-center py-8">
+                  <p className="text-gray-400 text-sm">No activity logs available</p>
+                </div>
+              ) : (
+                <div className="relative h-full overflow-y-auto activity-feed-scrollbar pr-2">
+                  {/* Show only 3 items at a time with mask */}
+                  <div className="relative overflow-hidden" style={{ height: '540px' }}>
+                    <div 
+                      className="space-y-4 transition-transform duration-1000 ease-in-out"
+                      style={{
+                        transform: `translateY(-${scrollIndex * 180}px)`, // 180px per item (160px height + 16px gap)
+                      }}
+                    >
+                      {/* Duplicate logs for seamless infinite scroll */}
+                      {[...userLogs, ...userLogs].map((log, index) => {
+                        // Get user identifier (masked phone number or username)
+                        const userIdentifier = log.user || log.phoneNumber || 'User';
+                        // Mask phone number if it's a phone number format
+                        const maskedUser = userIdentifier.includes('*') 
+                          ? userIdentifier 
+                          : userIdentifier.length > 4 
+                            ? `${userIdentifier.slice(0, 3)}****${userIdentifier.slice(-4)}`
+                            : userIdentifier;
+                        
+                        // Get item/product name
+                        const itemName = log.item || log.productName || log.message || 'Item';
+                        
+                        // Get badge number
+                        const badgeNumber = log.badge || '1';
+                        
+                        // Get first character for avatar
+                        const firstChar = maskedUser.charAt(0).toUpperCase();
+
+                        return (
+                          <div key={`${log.id || index}-${Math.floor(index / userLogs.length)}`} className="flex items-start gap-3 min-h-[15px] bg-gray-900/80 rounded-lg px-2 py-4">
+                            <div className="relative shrink-0">
+                              <div className="w-12 h-12 bg-green-500 rounded-full flex items-center justify-center text-white font-bold text-sm border-2 border-white">
+                                {firstChar}
+                              </div>
+                              <div className="absolute -bottom-1 -right-1 w-5 h-5 bg-red-500 rounded-full flex items-center justify-center text-white text-xs font-bold border-2 border-gray-900">
+                                {badgeNumber}
+                              </div>
+                            </div>
+                            <div className="flex-1 min-w-0">
+                              <p className="text-white text-sm font-medium mb-1">{maskedUser}</p>
+                              <p className="text-green-500 text-xs mb-1">Open The Gold Treasure To Get</p>
+                              <p className="text-green-500 text-xs">{itemName}</p>
+                            </div>
+                          </div>
+                        );
+                      })}
                     </div>
-                    <div className="flex-1 min-w-0">
-                      <p className="text-white text-sm font-medium mb-1">{activity.user}</p>
-                      <p className="text-white text-xs mb-1">Open The Gold Treasure To Get</p>
-                      <p className="text-green-500 text-xs">{activity.item}</p>
-                    </div>
+                    {/* Gradient mask to fade top and bottom */}
+                    <div className="absolute top-0 left-0 right-0 h-8 bg-gradient-to-b from-gray-900/80 to-transparent pointer-events-none z-10"></div>
+                    <div className="absolute bottom-0 left-0 right-0 h-8 bg-gradient-to-t from-gray-900/80 to-transparent pointer-events-none z-10"></div>
                   </div>
-                ))}
-              </div>
+                </div>
+              )}
             </div>
           </div>
         </div>

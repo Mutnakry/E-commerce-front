@@ -5,6 +5,8 @@ import { useRouter } from 'next/navigation';
 import LoginModal from './modale/LoginModal';
 import { useAuth } from '@/contexts/AuthContext';
 import { wishlistUtils } from '@/lib/wishlist';
+import { cartUtils } from '@/lib/cart';
+import SearchProduct from './product/searchproduct';
 import Image from 'next/image';
 
 export default function Header() {
@@ -13,6 +15,7 @@ export default function Header() {
   const [isProfileDropdownOpen, setIsProfileDropdownOpen] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [wishlistCount, setWishlistCount] = useState(0);
+  const [cartCount, setCartCount] = useState(0);
   const { user, logout } = useAuth();
   const dropdownRef = useRef<HTMLDivElement>(null);
   const mobileMenuRef = useRef<HTMLDivElement>(null);
@@ -65,6 +68,20 @@ export default function Header() {
     };
   }, []);
 
+  // Load cart count and listen for updates
+  useEffect(() => {
+    const updateCartCount = () => {
+      setCartCount(cartUtils.getCartCount());
+    };
+
+    updateCartCount();
+    window.addEventListener('cartUpdated', updateCartCount);
+
+    return () => {
+      window.removeEventListener('cartUpdated', updateCartCount);
+    };
+  }, []);
+
   return (
     <>
       <header className="bg-gray-900 border-b border-gray-800">
@@ -88,7 +105,10 @@ export default function Header() {
                 )}
               </button>
 
-              <div className="text-green-500 text-xl md:text-2xl font-bold">Ecommerce</div>
+              <div className="text-green-500 text-xl md:text-2xl font-bold">
+                <span className="md:hidden">E</span>
+                <span className="hidden md:inline">Ecommerce</span>
+              </div>
               
               {/* Desktop Navigation */}
               <nav className="hidden md:flex items-center gap-6">
@@ -112,23 +132,14 @@ export default function Header() {
 
             <div className="flex items-center gap-2 md:gap-4">
               {/* Search Bar - Desktop Only */}
-              <div className="hidden md:flex items-center gap-2 px-4 py-2 bg-gray-800 rounded-lg">
-                <svg className="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-                </svg>
-                <input
-                  type="text"
-                  placeholder="Search items"
-                  className="bg-transparent text-white placeholder-gray-400 outline-none w-32"
-                />
+              <div className="hidden md:block">
+                <SearchProduct />
               </div>
 
-              {/* Search Icon - Mobile Only */}
-              <button className="md:hidden text-gray-300 hover:text-white transition-colors">
-                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-                </svg>
-              </button>
+              {/* Search - Mobile Only */}
+              <div className="md:hidden">
+                <SearchProduct />
+              </div>
 
               {user ? (
                 <div className="flex items-center gap-2 md:gap-4">
@@ -165,17 +176,35 @@ export default function Header() {
                   </button>
 
                   {/* Shopping Cart - Desktop Only */}
-                  <button className="hidden md:block text-gray-300 hover:text-white transition-colors">
+                  <button
+                    onClick={() => router.push('/cart')}
+                    className="hidden md:block relative text-gray-300 hover:text-white transition-colors"
+                    aria-label="Shopping Cart"
+                  >
                     <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z" />
                     </svg>
+                    {cartCount > 0 && (
+                      <span className="absolute -top-1 -right-1 bg-green-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center">
+                        {cartCount > 9 ? '9+' : cartCount}
+                      </span>
+                    )}
                   </button>
                   
                   {/* Shopping Cart - Mobile Only */}
-                  <button className="md:hidden text-gray-300 hover:text-white transition-colors">
+                  <button
+                    onClick={() => router.push('/cart')}
+                    className="md:hidden relative text-gray-300 hover:text-white transition-colors"
+                    aria-label="Shopping Cart"
+                  >
                     <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z" />
                     </svg>
+                    {cartCount > 0 && (
+                      <span className="absolute -top-1 -right-1 bg-green-500 text-white text-xs rounded-full w-4 h-4 flex items-center justify-center text-[10px]">
+                        {cartCount > 9 ? '9+' : cartCount}
+                      </span>
+                    )}
                   </button>
 
                   <div className="flex items-center gap-2 md:gap-3">
@@ -356,16 +385,7 @@ export default function Header() {
 
                 {/* Search Section */}
                 <div className="p-4 border-t border-gray-800">
-                  <div className="flex items-center gap-2 px-4 py-2 bg-gray-800 rounded-lg">
-                    <svg className="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-                    </svg>
-                    <input
-                      type="text"
-                      placeholder="Search items"
-                      className="bg-transparent text-white placeholder-gray-400 outline-none flex-1"
-                    />
-                  </div>
+                  <SearchProduct onProductClick={() => setIsMobileMenuOpen(false)} />
                 </div>
               </div>
             </div>

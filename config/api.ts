@@ -52,6 +52,7 @@ export const API_ENDPOINTS = {
   USERS: {
     LIST: `${API_BASE_URL}/users`,
     GET: (id: string) => `${API_BASE_URL}/users/${id}`,
+    LOGS: `${API_BASE_URL}/users/logs`,
   },
 };
 

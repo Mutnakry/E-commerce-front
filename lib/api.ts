@@ -1,4 +1,4 @@
-import { User, AuthResponse, Banner, Product, Brand, Category, Review } from './types';
+import { User, AuthResponse, Banner, Product, Brand, Category, Review, UserLog, Promotion } from './types';
 import { API_ENDPOINTS } from '../config/api';
 
 export interface LoginCredentials {
@@ -274,6 +274,117 @@ export const reviewsApi = {
       return Array.isArray(data.data) ? data.data : [];
     }
     return Array.isArray(data) ? data : (data.data || data.items || []);
+  },
+};
+
+export const userLogsApi = {
+  getUserLogs: async (token?: string): Promise<UserLog[]> => {
+    // Use fallback URL to ensure /v1/api is included
+    const url = `${API_BASE_URL_FALLBACK}/users/logs`;
+    
+    const headers: HeadersInit = {
+      'Content-Type': 'application/json',
+    };
+
+    // Add authorization if token is provided
+    if (token) {
+      headers['Authorization'] = `Bearer ${token}`;
+    }
+    
+    try {
+      const response = await fetch(url, {
+        method: 'GET',
+        headers,
+      });
+
+      // Handle 401 gracefully - logs might be public or require auth
+      if (response.status === 401) {
+        console.warn('User logs endpoint requires authentication, returning empty array');
+        return [];
+      }
+
+      if (!response.ok) {
+        console.error(`Failed to fetch user logs: ${response.status} ${response.statusText}`);
+        const errorText = await response.text();
+        console.error('Error response:', errorText);
+        throw new Error(`Failed to fetch user logs: ${response.status} ${response.statusText}`);
+      }
+
+      const data = await response.json();
+      console.log('User logs API response:', data);
+      
+      // Handle nested response structure: { success, message, data }
+      if (data.success && data.data) {
+        const logs = Array.isArray(data.data) ? data.data : [];
+        console.log('Parsed logs from data.data:', logs);
+        return logs;
+      }
+      
+      // Handle direct array response
+      if (Array.isArray(data)) {
+        console.log('Direct array response:', data);
+        return data;
+      }
+      
+      // Try other possible response structures
+      if (data.data && Array.isArray(data.data)) {
+        return data.data;
+      }
+      
+      if (data.items && Array.isArray(data.items)) {
+        return data.items;
+      }
+      
+      if (data.logs && Array.isArray(data.logs)) {
+        return data.logs;
+      }
+      
+      console.warn('Unexpected response structure:', data);
+      return [];
+    } catch (error) {
+      console.error('Error in getUserLogs:', error);
+      throw error;
+    }
+  },
+};
+
+export const promotionsApi = {
+  getPromotions: async (token?: string): Promise<Promotion[]> => {
+    const API_BASE_URL_FALLBACK = process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:4200/v1/api';
+    const url = `${API_BASE_URL_FALLBACK}/admin/promotions`;
+    
+    try {
+      const headers: HeadersInit = {
+        'Content-Type': 'application/json',
+        'accept': '*/*',
+      };
+      
+      if (token) {
+        headers['Authorization'] = `Bearer ${token}`;
+      }
+
+      const response = await fetch(url, {
+        method: 'GET',
+        headers,
+      });
+
+      if (!response.ok) {
+        throw new Error(`Failed to fetch promotions: ${response.status} ${response.statusText}`);
+      }
+
+      const data = await response.json();
+      
+      // Handle nested response structure: { success, message, data }
+      if (data.success && data.data) {
+        return Array.isArray(data.data) ? data.data : [];
+      }
+      
+      // Handle direct array response
+      return Array.isArray(data) ? data : (data.data || data.items || []);
+    } catch (error) {
+      console.error('Error fetching promotions:', error);
+      throw error;
+    }
   },
 };
 

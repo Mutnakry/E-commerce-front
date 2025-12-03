@@ -7,6 +7,7 @@ import Footer from '@/components/Footer';
 import { productsApi } from '@/lib/api';
 import { Product } from '@/lib/types';
 import { wishlistUtils } from '@/lib/wishlist';
+import { cartUtils } from '@/lib/cart';
 import Image from 'next/image';
 
 export default function WishlistPage() {
@@ -184,7 +185,17 @@ export default function WishlistPage() {
                       >
                         View Details
                       </button>
-                      <button className="px-4 py-2 bg-gray-700 text-white rounded-lg hover:bg-gray-600 transition-colors text-sm">
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          // Add product to cart (using first variant if available, or no variant)
+                          const variantId = product.variants && product.variants.length > 0 
+                            ? product.variants[0].id 
+                            : undefined;
+                          cartUtils.addToCart(product.id, variantId, 1);
+                        }}
+                        className="px-4 py-2 bg-gray-700 text-white rounded-lg hover:bg-gray-600 transition-colors text-sm"
+                      >
                         Add To Cart
                       </button>
                     </div>
