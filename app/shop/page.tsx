@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect, useMemo, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import Header from '@/components/Header';
 import Footer from '@/components/Footer';
@@ -13,7 +13,7 @@ import Image from 'next/image';
 
 const ITEMS_PER_PAGE = 8;
 
-export default function ShopPage() {
+function ShopPageContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const showWishlistOnly = searchParams.get('wishlist') === 'true';
@@ -884,4 +884,21 @@ export default function ShopPage() {
       <Footer />
     </div>
   );
+}
+
+export default function ShopPage() {
+  return (
+    <Suspense fallback={
+      <div className="min-h-screen bg-black">
+        <Header />
+        <div className="flex items-center justify-center py-12">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-green-500"></div>
+        </div>
+        <Footer />
+      </div>
+    }>
+      <ShopPageContent />
+    </Suspense>
+  );
+
 }
